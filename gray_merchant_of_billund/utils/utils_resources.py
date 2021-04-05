@@ -59,10 +59,14 @@ def get_personal_collection(
             price_notes = fields[3]
         acquired_date: Optional[str] = None
         if fields[4] != "":
-            acquired_date = fields[4].strip("\n")
-        other_notes: Optional[str] = None
+            acquired_date = fields[4]
+        date_notes: Optional[str] = None
         if fields[5] != "":
-            other_notes = fields[5].strip("\n")
+            date_notes = fields[5]
+        gift: bool = fields[6].lower() == "x"
+        other_notes: Optional[str] = None
+        if fields[7] != "":
+            other_notes = fields[7].strip("\n")
         name: str = name_year[: name_year.rindex(" ")]
         year: str = name_year[
             name_year.rindex("(") + 1 : name_year.rindex(")")
@@ -78,6 +82,8 @@ def get_personal_collection(
                 purchase_price,
                 price_notes,
                 acquired_date,
+                date_notes,
+                gift,
                 other_notes,
             )
         )
@@ -131,12 +137,22 @@ def get_personal_index(
             log.warning(f"Missing set {s} in Rebrickable index. Skipping it.")
             continue
         rebrickable_set: RebrickableSet = rebrickable_index[s.num]
+        if s.name != rebrickable_set.name:
+            log.warning(
+                f"Wrong set name in personal collection for {s.num}: "
+                f"'{s.name}' instead of '{rebrickable_set.name}'"
+            )
+        if s.year != rebrickable_set.year:
+            log.warning(
+                f"Wrong set year in personal collection for {s.num}: "
+                f"'{s.year}' instead of '{rebrickable_set.year}'"
+            )
         indexed_sets.append(
             RebrickableSet(
                 BaseSet(
                     s.num,
-                    rebrickable_set.name,  # TODO: print warning if do not match with s.name
-                    rebrickable_set.year,  # TODO: print warning if do not match with s.year
+                    rebrickable_set.name,
+                    rebrickable_set.year,
                 ),
                 rebrickable_set.theme_id,
                 rebrickable_set.num_parts,

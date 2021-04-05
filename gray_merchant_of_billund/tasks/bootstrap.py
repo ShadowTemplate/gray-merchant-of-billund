@@ -4,6 +4,8 @@ from gray_merchant_of_billund.constants.gmob import (
     BOOTSTRAP_FILE,
     RESOURCES_DIR,
 )
+from gray_merchant_of_billund.indexer.brickset_indexer import _get_brickset_set
+from gray_merchant_of_billund.model.brickset_set import BricksetSet
 from gray_merchant_of_billund.model.rebrickable_set import RebrickableIndex
 from gray_merchant_of_billund.utils.path import posix_path
 from gray_merchant_of_billund.utils.utils_resources import (
@@ -23,17 +25,35 @@ def bootstrap():
             "# SET #   |"
             "SET NAME (YEAR)                                |"
             "PRICE €|"
-            "PRICE NOTES            |"
+            "PRICE NOTES      |"
             "ACQUIRED DATE|"
+            "DATE NOTES      |"
+            "GIFT|"
             "OTHER NOTES\n"
         )
         for lego_set in sets:
             set_num: str = f"{lego_set}-1"
+            brickset_set: BricksetSet = _get_brickset_set(
+                rebrickable_index[set_num]
+            )
             set_name: str = rebrickable_index[set_num].name
             set_year: str = rebrickable_index[set_num].year
             full_name: str = f"{set_name} ({set_year})"
+            price: str = f"{brickset_set.rrp_available if brickset_set.rrp_available else ''}"
+            price_notes: str = (
+                "Guessed from RRP" if brickset_set.rrp_available else "Unknown"
+            )
+            acquired_date: str = f"31/12/{set_year}"
+            date_notes: str = "Uncertain year"
+            # TODO: Guessed from RRP
             out_f.write(
-                f"{set_num:<10}|{full_name:<47}|{'':<7}|{'':<23}|{'':<13}|\n"
+                f"{set_num:<10}|"
+                f"{full_name:<47}|"
+                f"{price:<7}|"
+                f"{price_notes:<17}|"
+                f"{acquired_date:<13}|"
+                f"{date_notes:<16}|"
+                f"{'':<4}|\n"
             )
 
 

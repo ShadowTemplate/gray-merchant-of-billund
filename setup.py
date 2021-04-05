@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 import os
+from pathlib import Path
 
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+
+from gray_merchant_of_billund.constants.gmob import (
+    CACHE_DIR,
+    RESOURCES_DIR,
+    APPLICATION_DIR,
+)
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -19,6 +27,13 @@ def read_requirements(file_name):
 
 with open(os.path.join(here, 'README.md')) as f:
     readme = f.read()
+
+
+class PostInstallCommand(install):
+    def run(self):
+        install.run(self)
+        for required_directory in [APPLICATION_DIR, RESOURCES_DIR, CACHE_DIR]:
+            Path(required_directory).mkdir(exist_ok=True)
 
 
 setup(
@@ -52,5 +67,8 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
-    ]
+    ],
+    cmdclass={
+        'install': PostInstallCommand,
+    },
 )

@@ -12,6 +12,8 @@ class CollectionSet(BaseSet):
         purchase_price: Optional[float],
         price_notes: Optional[str],
         acquired_date: Optional[str],
+        date_notes: Optional[str],
+        gift: bool,
         other_notes: Optional[str],
     ):
         super().__init__(
@@ -22,10 +24,19 @@ class CollectionSet(BaseSet):
         self.purchase_price: Optional[float] = purchase_price
         self.price_notes: Optional[str] = price_notes
         self.acquired_date: Optional[str] = acquired_date
+        self.date_notes: Optional[str] = date_notes
+        self.gift: bool = gift
         self.other_notes: Optional[str] = other_notes
 
     def __str__(self):
-        return f"{super().__str__()} ({self.purchase_price} €)"
+        return (
+            f"{super().__str__()} "
+            f"{'🎁' if self.gift else ''} "
+            f"({self.purchase_price} €"
+            f"{'. ' + self.price_notes if self.price_notes else ''}) "
+            f"({self.acquired_date}"
+            f"{'. ' + self.date_notes if self.date_notes else ''})"
+        )
 
     @staticmethod
     def store_dir() -> str:
@@ -49,3 +60,11 @@ class CollectionIndex(BaseIndex):
     @property
     def tot_purchase_price(self) -> float:
         return sum(s.purchase_price for s in self.sets if s.purchase_price)
+
+    @property
+    def actually_paid_price(self) -> float:
+        return sum(
+            s.purchase_price
+            for s in self.sets
+            if s.purchase_price and not s.gift
+        )

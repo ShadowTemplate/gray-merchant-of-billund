@@ -21,7 +21,7 @@ def explore():
     separator = "-" * 25
 
     my_wishlist: CollectionIndex = get_personal_collection(
-        posix_path(RESOURCES_DIR, "wishlist.txt")
+        posix_path(RESOURCES_DIR, "wish_list.txt")
     )
     print(f"Sets: {len(my_wishlist)}")
     print(f"Price: {my_wishlist.tot_purchase_price}")

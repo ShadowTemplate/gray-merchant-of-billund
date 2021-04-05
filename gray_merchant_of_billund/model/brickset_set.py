@@ -91,8 +91,7 @@ class BricksetSet(RebrickableSet):
             f"Designer: {self.designer} "
             f"RRP: {self.rrp_raw} "
             f"PPP: {self.ppp_raw} "
-            f"Dimensions: {self.dimensions} "
-            f"@ {self.link_brickset}"
+            f"Dimensions: {self.dimensions}"
         )
 
     @staticmethod
@@ -133,6 +132,12 @@ class BricksetIndex(RebrickableIndex):
     def top_n_themes(self, n: int) -> Sequence[Tuple[str, int]]:
         return Counter(s.theme for s in self.sets if s.theme).most_common(n)
 
+    def bottom_n_rrp_eur(self, n: int) -> Sequence[BricksetSet]:
+        return sorted(
+            (s for s in self.sets if s.rrp_eur is not None),
+            key=lambda s: s.rrp_eur if s.rrp_eur is not None else 0,
+        )[:n]
+
     def top_n_rrp_eur(self, n: int) -> Sequence[BricksetSet]:
         return sorted(
             (s for s in self.sets if s.rrp_eur is not None),
@@ -142,11 +147,11 @@ class BricksetIndex(RebrickableIndex):
     def bottom_n_ppp_eur(self, n: int) -> Sequence[BricksetSet]:
         return sorted(
             (s for s in self.sets if s.ppp_eur is not None),
-            key=lambda s: -s.ppp_eur if s.ppp_eur is not None else 0,
+            key=lambda s: s.ppp_eur if s.ppp_eur is not None else 0,
         )[:n]
 
     def top_n_ppp_eur(self, n: int) -> Sequence[BricksetSet]:
         return sorted(
             (s for s in self.sets if s.ppp_eur is not None),
-            key=lambda s: s.ppp_eur if s.ppp_eur is not None else 0,
+            key=lambda s: -s.ppp_eur if s.ppp_eur is not None else 0,
         )[:n]

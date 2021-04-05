@@ -33,9 +33,7 @@ class BricklinkSet(RebrickableSet, Expirable):
         return (
             f"{super().__str__()} "
             f"Sale: {self.for_sale}, "
-            f"Wanted: {self.on_wanted} "
-            f"@ {self.link_bricklink} "
-            f"@ {self.link_bricklink_history}"
+            f"Wanted: {self.on_wanted}"
         )
 
     @staticmethod
