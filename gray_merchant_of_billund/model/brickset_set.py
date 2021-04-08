@@ -2,14 +2,16 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, Generator, Optional, Sequence, Tuple
 
-from gray_merchant_of_billund.constants.gmob import IMMUTABLE_STORAGE_DIR
+from gray_merchant_of_billund.constants.gmob import MUTABLE_STORAGE_DIR
 from gray_merchant_of_billund.model.rebrickable_set import (
     RebrickableIndex,
     RebrickableSet,
 )
+from gray_merchant_of_billund.storage.expirable import Expirable
+from gray_merchant_of_billund.utils.time import now
 
 
-class BricksetSet(RebrickableSet):
+class BricksetSet(RebrickableSet, Expirable):
     def __init__(
         self,
         rebrickable_lego_set: RebrickableSet,
@@ -31,6 +33,7 @@ class BricksetSet(RebrickableSet):
         self.rrp_raw: str = rrp_raw
         self.ppp_raw: str = ppp_raw
         self.dimensions: str = dimensions
+        self._now: int = now()
 
     @property
     def rrp_gbp(self) -> Optional[float]:
@@ -83,6 +86,14 @@ class BricksetSet(RebrickableSet):
             return None
         return float(self.ppp_raw.split(" ")[-1][:-1])
 
+    @staticmethod
+    def store_dir() -> str:
+        return (Path(MUTABLE_STORAGE_DIR) / "BricksetSet").as_posix()
+
+    @property
+    def creation_date_ms(self) -> int:
+        return self._now
+
     def __str__(self):
         return (
             f"{super().__str__()} "
@@ -93,10 +104,6 @@ class BricksetSet(RebrickableSet):
             f"PPP: {self.ppp_raw} "
             f"Dimensions: {self.dimensions}"
         )
-
-    @staticmethod
-    def store_dir() -> str:
-        return (Path(IMMUTABLE_STORAGE_DIR) / "BricksetSet").as_posix()
 
 
 class BricksetIndex(RebrickableIndex):

@@ -15,18 +15,20 @@ from gray_merchant_of_billund.model.rebrickable_set import (
     RebrickableIndex,
     RebrickableSet,
 )
-from gray_merchant_of_billund.storage.saveable import load
+from gray_merchant_of_billund.storage.expirable import load
 from gray_merchant_of_billund.utils.log import get_logger
 from gray_merchant_of_billund.utils.utils_request import execute_http_request
 
 log = get_logger()
 
 
-def get_brickset_index(index: RebrickableIndex) -> BricksetIndex:
+def get_brickset_index(
+        index: RebrickableIndex, time_to_live_ms: Optional[int] = None
+) -> BricksetIndex:
     sets: List[BricksetSet] = []
     for lego_set in index:
         brickset_set: Optional[BricksetSet] = load(
-            BricksetSet, lego_set.store_key
+            BricksetSet, lego_set.store_key, time_to_live_ms
         )
         if not brickset_set:
             brickset_set = _get_brickset_set(lego_set)

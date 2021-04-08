@@ -24,7 +24,7 @@ def collection_stats():
     separator = "-" * 25
 
     my_collection: CollectionIndex = get_personal_collection(
-        # posix_path(RESOURCES_DIR, "autogen.txt")
+        # posix_path(RESOURCES_DIR, "autogen.txt")  # TODO: fix
     )
     rebrickable_index: RebrickableIndex = get_rebrickable_index()
     my_index: RebrickableIndex = get_personal_index(
@@ -35,7 +35,9 @@ def collection_stats():
     brickset_index: BricksetIndex = get_brickset_index(my_index)
     correct_brickset_index(brickset_index)
 
-    print(f"Sets: {len(my_collection)}")
+    num_gifts: int = len([s for s in my_collection if s.gift])
+    num_instructions: int = len([s for s in my_collection if s.instructions])
+    print(f"Sets: {len(my_collection)} ({num_gifts} 🎁, {num_instructions} 📖)")
     print(my_collection)
     print(separator)
 

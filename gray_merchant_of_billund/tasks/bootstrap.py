@@ -29,6 +29,7 @@ def bootstrap():
             "ACQUIRED DATE|"
             "DATE NOTES      |"
             "GIFT|"
+            "INSTRUCTIONS|"
             "OTHER NOTES\n"
         )
         for lego_set in sets:
@@ -53,7 +54,8 @@ def bootstrap():
                 f"{price_notes:<17}|"
                 f"{acquired_date:<13}|"
                 f"{date_notes:<16}|"
-                f"{'':<4}|\n"
+                f"{'':<4}|"
+                f"{'':<11}|\n"
             )
 
 

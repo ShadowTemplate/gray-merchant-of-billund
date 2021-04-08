@@ -64,9 +64,10 @@ def get_personal_collection(
         if fields[5] != "":
             date_notes = fields[5]
         gift: bool = fields[6].lower() == "x"
+        instructions: bool = fields[7].lower() == "x"
         other_notes: Optional[str] = None
-        if fields[7] != "":
-            other_notes = fields[7].strip("\n")
+        if fields[8] != "":
+            other_notes = fields[8].strip("\n")
         name: str = name_year[: name_year.rindex(" ")]
         year: str = name_year[
             name_year.rindex("(") + 1 : name_year.rindex(")")
@@ -84,6 +85,7 @@ def get_personal_collection(
                 acquired_date,
                 date_notes,
                 gift,
+                instructions,
                 other_notes,
             )
         )
