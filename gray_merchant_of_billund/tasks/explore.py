@@ -104,6 +104,67 @@ def explore():
         print(f"{lego_set.num}: {lego_set.name}: {lego_set.year}")
     print(separator)
 
+    bricklink_index: BricklinkIndex = get_bricklink_index(my_index)
+    for lego_set in bricklink_index:
+        print(f"{lego_set.num}: {lego_set.name}: {lego_set.link_bricklink}")
+    print(separator)
+
+    print("Bricklink current used min/avg price:")
+    for lego_set in bricklink_index:
+        price_guide = lego_set.price_guide
+        if price_guide.details_current_used and price_guide.aggregate_current_used:
+            min_price = price_guide.details_current_used.min_price
+            avg_price = price_guide.aggregate_current_used.avg_price
+            print(
+                f"{lego_set.num}: {lego_set.name} ({lego_set.year}): {min_price}/{avg_price} €"
+            )
+        else:
+            print(
+                f"{lego_set.num}: {lego_set.name} ({lego_set.year}): nothing on the market right now!"
+            )
+    print(separator)
+    total_min, missing = bricklink_index.total_current_used_min_price
+    total_avg, missing = bricklink_index.total_current_used_avg_price
+    print(
+        f"Bricklink current used total min price: {total_min:.2f} € ({len(missing)} sets missing)"
+    )
+    print(
+        f"Bricklink current used total avg price: {total_avg:.2f} € ({len(missing)} sets missing)"
+    )
+    if len(missing) > 0:
+        print("Missing sets:")
+        for lego_set in missing:
+            print(f"{lego_set.num}: {lego_set.name} ({lego_set.year})")
+    print(separator)
+
+    print("Bricklink current new min/avg price")
+    for lego_set in bricklink_index:
+        price_guide = lego_set.price_guide
+        if price_guide.details_current_new and price_guide.aggregate_current_new:
+            min_price = price_guide.details_current_new.min_price
+            avg_price = price_guide.aggregate_current_new.avg_price
+            print(
+                f"{lego_set.num}: {lego_set.name} ({lego_set.year}): {min_price}/{avg_price} €"
+            )
+        else:
+            print(
+                f"{lego_set.num}: {lego_set.name} ({lego_set.year}): nothing on the market right now!"
+            )
+    print(separator)
+    total_min, missing = bricklink_index.total_current_new_min_price
+    total_avg, missing = bricklink_index.total_current_new_avg_price
+    print(
+        f"Bricklink current new total min price: {total_min:.2f} € ({len(missing)} sets missing)"
+    )
+    print(
+        f"Bricklink current new total avg price: {total_avg:.2f} € ({len(missing)} sets missing)"
+    )
+    if len(missing) > 0:
+        print("Missing sets:")
+        for lego_set in missing:
+            print(f"{lego_set.num}: {lego_set.name} ({lego_set.year})")
+    print(separator)
+
 
 if __name__ == "__main__":
     explore()

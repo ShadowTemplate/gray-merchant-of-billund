@@ -66,6 +66,21 @@ class BricklinkIndex(RebrickableIndex):
         return sorted(self.sets, key=lambda s: -s.on_wanted)[:n]
 
     @property
+    def total_current_used_min_price(
+        self,
+    ) -> Tuple[float, Sequence[BricklinkSet]]:
+        total_current_used: float = 0
+        missing: List[BricklinkSet] = []
+        for lego_set in self:
+            if lego_set.price_guide.details_current_used:
+                total_current_used += (
+                    lego_set.price_guide.aggregate_current_used.min_price
+                )
+            else:
+                missing.append(lego_set)
+        return total_current_used, missing
+
+    @property
     def total_current_used_avg_price(
         self,
     ) -> Tuple[float, Sequence[BricklinkSet]]:
@@ -79,6 +94,21 @@ class BricklinkIndex(RebrickableIndex):
             else:
                 missing.append(lego_set)
         return total_current_used, missing
+
+    @property
+    def total_current_new_min_price(
+            self,
+    ) -> Tuple[float, Sequence[BricklinkSet]]:
+        total_current_new: float = 0
+        missing: List[BricklinkSet] = []
+        for lego_set in self:
+            if lego_set.price_guide.details_current_new:
+                total_current_new += (
+                    lego_set.price_guide.details_current_new.min_price
+                )
+            else:
+                missing.append(lego_set)
+        return total_current_new, missing
 
     @property
     def total_current_new_avg_price(
