@@ -16,7 +16,7 @@ from gray_merchant_of_billund.utils.utils_resources import (
 def bootstrap():
     sets: List[str] = []
     for line in open(BOOTSTRAP_FILE, "r"):
-        if line.startswith("#"):
+        if line.startswith("#") or line == '\n':
             continue
         sets.append(line.replace("\n", ""))
     rebrickable_index: RebrickableIndex = get_rebrickable_index()
