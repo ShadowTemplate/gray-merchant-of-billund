@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 
 from gray_merchant_of_billund.indexer.bricklink_indexer import (
     get_bricklink_index,
@@ -37,7 +38,15 @@ def collection_stats():
 
     num_gifts: int = len([s for s in my_collection if s.gift])
     num_instructions: int = len([s for s in my_collection if s.instructions])
-    print(f"Sets: {len(my_collection)} ({num_gifts} 🎁, {num_instructions} 📖)")
+    num_new: int = len([s for s in my_collection if s.acquired_new])
+    num_used: int = len(my_collection) - num_new
+    print(
+        f"Sets: {len(my_collection)} "
+        f"({num_new} 💖, "
+        f"{num_used} 💞, "
+        f"{num_instructions} 📖, "
+        f"{num_gifts} 🎁)"
+    )
     print(my_collection)
     print(separator)
 
@@ -52,6 +61,7 @@ def collection_stats():
             )
         )
 
+    print("Missing instructions:")
     for s in my_collection:
         if not s.instructions:
             print(f"https://www.bricklink.com/v2/catalog/catalogitem.page?I={s.num}")
@@ -69,6 +79,26 @@ def collection_stats():
     print(
         f"Avg price per piece: {100 * my_collection.tot_purchase_price/my_index.tot_num_parts:.2f} c"
     )
+    print(separator)
+    print("Origin (type)")
+    print(f"Store: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('S')])}")
+    print(f"Online: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('O')])}")
+    print(f"eBay: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('E')])}")
+    print(f"Bricklink: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('B')])}")
+    print(f"Gianmarco: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('G')])}")
+    print(separator)
+    print("Origin (country)")
+    country_counter = defaultdict(int)
+    for s in my_collection:
+        if not s.acquired_location:
+            country_counter['?'] += 1
+        elif s.acquired_location.startswith('G'):
+            country_counter['ITA'] += 1
+        else:
+            tokens = s.acquired_location.split(', ')
+            country_counter[tokens[1]] += 1
+    for country, counter in country_counter.items():
+        print(f"{country}: {counter}")
     print(separator)
 
     # big_set_threshold = 999

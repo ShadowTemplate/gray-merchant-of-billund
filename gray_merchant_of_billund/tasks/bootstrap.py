@@ -30,6 +30,8 @@ def bootstrap():
             "DATE NOTES      |"
             "GIFT|"
             "INSTRUCTIONS|"
+            "ACQUIRED LOCATION                  |"
+            "NEW|"
             "OTHER NOTES\n"
         )
         for lego_set in sets:
@@ -40,13 +42,17 @@ def bootstrap():
             set_name: str = rebrickable_index[set_num].name
             set_year: str = rebrickable_index[set_num].year
             full_name: str = f"{set_name} ({set_year})"
+            # TODO: Guessed from RRP
             price: str = f"{brickset_set.rrp_available if brickset_set.rrp_available else ''}"
             price_notes: str = (
                 "Guessed from RRP" if brickset_set.rrp_available else "Unknown"
             )
             acquired_date: str = f"31/12/{set_year}"
             date_notes: str = "Uncertain year"
-            # TODO: Guessed from RRP
+            gift: str = ''
+            instructions: str = ''
+            acquired_location: str = ''
+            acquired_new: str = ''
             out_f.write(
                 f"{set_num:<10}|"
                 f"{full_name:<47}|"
@@ -54,8 +60,10 @@ def bootstrap():
                 f"{price_notes:<17}|"
                 f"{acquired_date:<13}|"
                 f"{date_notes:<16}|"
-                f"{'':<4}|"
-                f"{'':<11}|\n"
+                f"{gift:<4}|"
+                f"{instructions:<12}|"
+                f"{acquired_location:<35}|"
+                f"{acquired_new:<3}|\n"
             )
 
 

@@ -15,6 +15,8 @@ class CollectionSet(BaseSet):
         date_notes: Optional[str],
         gift: bool,
         instructions: bool,
+        acquired_location: Optional[str],
+        acquired_new: bool,
         other_notes: Optional[str],
     ):
         super().__init__(
@@ -28,11 +30,14 @@ class CollectionSet(BaseSet):
         self.date_notes: Optional[str] = date_notes
         self.gift: bool = gift
         self.instructions: bool = instructions
+        self.acquired_location: Optional[str] = acquired_location
+        self.acquired_new: bool = acquired_new
         self.other_notes: Optional[str] = other_notes
 
     def __str__(self):
         return (
             f"{super().__str__()} "
+            f"{'💖' if self.acquired_new else '💞'}"
             f"{'🎁' if self.gift else ''}"
             f"{'📖' if self.instructions else ''} "
             f"({self.purchase_price} €"
