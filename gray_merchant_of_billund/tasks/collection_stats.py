@@ -52,6 +52,10 @@ def collection_stats():
             )
         )
 
+    for s in my_collection:
+        if not s.instructions:
+            print(f"https://www.bricklink.com/v2/catalog/catalogitem.page?I={s.num}")
+
     print(f"Total parts: {my_index.tot_num_parts}")
     print(f"Avg set parts: {my_index.avg_num_parts:.2f}")
     print(f"Median set parts: {my_index.median_num_parts}")
@@ -75,7 +79,7 @@ def collection_stats():
     #     )
     # print(separator)
 
-    top_n = 5
+    top_n = 15
     print(f"Top-{top_n} num parts:")
     for top_set in my_index.top_n_large(top_n):
         print(
