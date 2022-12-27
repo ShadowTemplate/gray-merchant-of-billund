@@ -73,6 +73,13 @@ def explore():
     print(brickset_index)
     print(separator)
 
+    # totz = 0
+    # for set_ in brickset_index:
+    #     discounted = round(set_.rrp_eur - (set_.rrp_eur * 20 / 100))
+    #     print(f"{set_.num}| {set_.name}: {set_.rrp_eur} -> {discounted}")
+    #     totz += discounted
+    # print(totz)
+
     print(f"Minifigures: {brickset_index.tot_num_minifigs}")
     print(separator)
 
@@ -112,7 +119,10 @@ def explore():
     print("Bricklink current used min/avg price:")
     for lego_set in bricklink_index:
         price_guide = lego_set.price_guide
-        if price_guide.details_current_used and price_guide.aggregate_current_used:
+        if (
+            price_guide.details_current_used
+            and price_guide.aggregate_current_used
+        ):
             min_price = price_guide.details_current_used.min_price
             avg_price = price_guide.aggregate_current_used.avg_price
             print(
@@ -140,7 +150,10 @@ def explore():
     print("Bricklink current new min/avg price")
     for lego_set in bricklink_index:
         price_guide = lego_set.price_guide
-        if price_guide.details_current_new and price_guide.aggregate_current_new:
+        if (
+            price_guide.details_current_new
+            and price_guide.aggregate_current_new
+        ):
             min_price = price_guide.details_current_new.min_price
             avg_price = price_guide.aggregate_current_new.avg_price
             print(

@@ -29,7 +29,11 @@ class BaseSet(Saveable):
         return f"{BRICKLINK_SET_SHOP_URL.format(num=self.num)}"
 
     @property
-    def link_bricklink_history(self) -> str:
+    def link_bricklink_set_history(self) -> str:
+        return f"{BRICKLINK_SET_HISTORY_COMPLETE_URL.format(num=self.num)}"
+
+    @property
+    def link_bricklink_box_history(self) -> str:
         return f"{BRICKLINK_SET_HISTORY_COMPLETE_URL.format(num=self.num)}"
 
     @property

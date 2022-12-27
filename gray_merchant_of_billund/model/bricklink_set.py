@@ -18,6 +18,7 @@ class BricklinkSet(RebrickableSet, Expirable):
         for_sale: int,
         on_wanted: int,
         price_guide: PriceGuide,
+        price_guide_box: PriceGuide,
     ):
         super().__init__(
             rebrickable_lego_set,
@@ -27,6 +28,7 @@ class BricklinkSet(RebrickableSet, Expirable):
         self.for_sale: int = for_sale
         self.on_wanted: int = on_wanted
         self.price_guide: PriceGuide = price_guide
+        self.price_guide_box: PriceGuide = price_guide_box
         self._now: int = now()
 
     def __str__(self):
@@ -81,6 +83,21 @@ class BricklinkIndex(RebrickableIndex):
         return total_current_used, missing
 
     @property
+    def total_current_used_min_price_box(
+        self,
+    ) -> Tuple[float, Sequence[BricklinkSet]]:
+        total_current_used: float = 0
+        missing: List[BricklinkSet] = []
+        for lego_set in self:
+            if lego_set.price_guide_box.details_current_used:
+                total_current_used += (
+                    lego_set.price_guide_box.aggregate_current_used.min_price
+                )
+            else:
+                missing.append(lego_set)
+        return total_current_used, missing
+
+    @property
     def total_current_used_avg_price(
         self,
     ) -> Tuple[float, Sequence[BricklinkSet]]:
@@ -97,7 +114,7 @@ class BricklinkIndex(RebrickableIndex):
 
     @property
     def total_current_new_min_price(
-            self,
+        self,
     ) -> Tuple[float, Sequence[BricklinkSet]]:
         total_current_new: float = 0
         missing: List[BricklinkSet] = []

@@ -1,7 +1,20 @@
 from functools import wraps
 
-from requests import ConnectionError
+from requests import ConnectionError, Session
 from retrying import retry  # type: ignore
+from stem import Signal
+from stem.control import Controller
+
+from gray_merchant_of_billund.constants.gmob import (
+    BRICKLINK_LOGIN_ENDPOINT,
+    TOR_CONTROLLER_PORT,
+)
+from gray_merchant_of_billund.model.exception import BricklinkLoginException
+from gray_merchant_of_billund.secrets import (
+    BRICKLINK_PASSWORD,
+    BRICKLINK_USERNAME,
+    TOR_PASSWORD,
+)
 
 
 def _retry_on_connection_error(exc):
@@ -37,3 +50,50 @@ def execute_http_request(request_fn, url, timeout=(3 * 20, 120), headers={}):
     response = request_fn(url, timeout=timeout, headers=headers)
     response.raise_for_status()
     return response
+
+
+def get_unathenticated_session():
+    return Session()
+
+
+def get_bricklink_authenticated_session():
+    headers = {
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/108.0.0.0 "
+        "Safari/537.36",
+    }
+
+    data = {
+        "userid": BRICKLINK_USERNAME,
+        "password": BRICKLINK_PASSWORD,
+        "override": "false",
+        "keepme_loggedin": "true",
+        "impersonate": "false",
+        "pageid": "MAIN",
+        "login_to": "",
+    }
+    session = Session()
+    response = session.post(
+        BRICKLINK_LOGIN_ENDPOINT,
+        headers=headers,
+        data=data,
+    )
+    if response.status_code == 200 and response.ok:
+        return session
+    raise BricklinkLoginException()
+
+
+def get_tor_session():
+    session = Session()
+    session.proxies = {
+        "http": "socks5h://localhost:9050",
+        "https": "socks5h://localhost:9050",
+    }
+    return session
+
+
+def renew_tor_ip():
+    with Controller.from_port(port=TOR_CONTROLLER_PORT) as controller:
+        controller.authenticate(password=TOR_PASSWORD)
+        controller.signal(Signal.NEWNYM)

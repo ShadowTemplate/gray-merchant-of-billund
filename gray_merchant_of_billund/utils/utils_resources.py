@@ -116,11 +116,15 @@ def get_rebrickable_index(
             # set name contains comma
             tokens: List[str] = line.split(",")
             num = tokens.pop(0)
-            year = tokens.pop(-3)
-            theme_id = tokens.pop(-2)
-            num_parts_str = tokens.pop(-1)
-            name = ",".join(tokens)[1:-1]
+            year = tokens.pop(-4)
+            theme_id = tokens.pop(-3)
+            num_parts_str = tokens.pop(-2)
+            _ = tokens.pop(-1)  # img_url
+            name = ",".join(tokens)  # [1:-1]
         num_parts = int(num_parts_str)
+        # some set names are " "-wrapped, causing annoying mismatches: strip them
+        if name.startswith('"') and name.endswith('"'):
+            name = name[1:-1]
         sets.append(
             RebrickableSet(
                 BaseSet(

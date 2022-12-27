@@ -4,7 +4,6 @@ from typing import List, Optional, Sequence
 import requests
 from pyquery import PyQuery  # type: ignore
 
-from gray_merchant_of_billund.model.base_set import BaseSet
 from gray_merchant_of_billund.model.bricklink_price import (
     BricklinkAggregatePrices,
     BricklinkAggregateSelling,
@@ -14,14 +13,15 @@ from gray_merchant_of_billund.model.bricklink_price import (
     BricklinkMarketEntry,
     PriceGuide,
 )
+from gray_merchant_of_billund.model.exception import BricklinkQuotaError
 from gray_merchant_of_billund.utils.log import get_logger
 from gray_merchant_of_billund.utils.utils_request import execute_http_request
 
 log = get_logger()
 
 
-def get_price_guide(lego_set: BaseSet) -> PriceGuide:
-    lego_set_url = lego_set.link_bricklink_history
+def get_price_guide(lego_set_url) -> PriceGuide:
+    log.debug(f"Processing history at {lego_set_url}...")
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux i686) "
         "AppleWebKit/537.17 (KHTML, like Gecko) "
@@ -30,14 +30,15 @@ def get_price_guide(lego_set: BaseSet) -> PriceGuide:
     }
     try:
         response = execute_http_request(
-            requests.get,
+            requests.get,  # session.get
             lego_set_url,
             headers=headers,
         )
         pq = PyQuery(response.content)
 
         if "Quota Exceeded" in pq.text():
-            raise ValueError("Soft-ban!")  # TODO handle soft-ban
+            # handle soft-ban
+            raise BricklinkQuotaError()
 
         aggregate_prices_fields = [
             "Total Qty:",
@@ -62,26 +63,26 @@ def get_price_guide(lego_set: BaseSet) -> PriceGuide:
             sales_summaries.append(td)
 
         aggregate_last_6_months_new: Optional[BricklinkAggregateSold] = None
-        if sales_summaries[0]:
+        if sales_summaries and sales_summaries[0]:
             aggregate_last_6_months_new = (
                 _parse_bricklink_aggregate_prices_sold(
                     _get_td_lines(sales_summaries[0])
                 )
             )
         aggregate_last_6_months_used: Optional[BricklinkAggregateSold] = None
-        if sales_summaries[1]:
+        if sales_summaries and sales_summaries[1]:
             aggregate_last_6_months_used = (
                 _parse_bricklink_aggregate_prices_sold(
                     _get_td_lines(sales_summaries[1])
                 )
             )
         aggregate_current_new: Optional[BricklinkAggregateSelling] = None
-        if sales_summaries[2]:
+        if sales_summaries and sales_summaries[2]:
             aggregate_current_new = _parse_bricklink_aggregate_prices_selling(
                 _get_td_lines(sales_summaries[2])
             )
         aggregate_current_used: Optional[BricklinkAggregateSelling] = None
-        if sales_summaries[3]:
+        if sales_summaries and sales_summaries[3]:
             aggregate_current_used = _parse_bricklink_aggregate_prices_selling(
                 _get_td_lines(sales_summaries[3])
             )
@@ -100,7 +101,7 @@ def get_price_guide(lego_set: BaseSet) -> PriceGuide:
         details_last_6_months_new: Optional[
             Sequence[BricklinkAggregateSoldMonth]
         ] = None
-        if sales_summaries[0]:
+        if sales_summaries and sales_summaries[0]:
             details_last_6_months_new = (
                 _parse_bricklink_aggregate_prices_sold_months(
                     _get_td_lines(detailed_sales_new[0])
@@ -109,7 +110,7 @@ def get_price_guide(lego_set: BaseSet) -> PriceGuide:
         details_last_6_months_used: Optional[
             Sequence[BricklinkAggregateSoldMonth]
         ] = None
-        if sales_summaries[1]:
+        if sales_summaries and sales_summaries[1]:
             details_last_6_months_used = (
                 _parse_bricklink_aggregate_prices_sold_months(
                     _get_td_lines(detailed_sales_used[0])
@@ -117,14 +118,14 @@ def get_price_guide(lego_set: BaseSet) -> PriceGuide:
             )
 
         details_current_new: Optional[BricklinkAggregateSellingCurrent] = None
-        if sales_summaries[2]:
+        if sales_summaries and sales_summaries[2]:
             details_current_new = (
                 _parse_bricklink_aggregate_prices_selling_current(
                     _get_td_lines(detailed_sales_new[1])
                 )
             )
         details_current_used: Optional[BricklinkAggregateSellingCurrent] = None
-        if sales_summaries[3]:
+        if sales_summaries and sales_summaries[3]:
             details_current_used = (
                 _parse_bricklink_aggregate_prices_selling_current(
                     _get_td_lines(detailed_sales_used[1])

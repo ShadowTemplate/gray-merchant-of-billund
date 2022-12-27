@@ -23,9 +23,14 @@ PERSONAL_COLLECTION_FIELDS_NUMBER = 11
 BRICKLINK_URL = "https://www.bricklink.com/"
 BRICKLINK_SET_SHOP_URL = BRICKLINK_URL + "v2/catalog/catalogitem.page?S={num}"
 BRICKLINK_SET_HISTORY_URL = BRICKLINK_URL + "catalogPG.asp?S={num}-"
+BRICKLINK_BOX_HISTORY_URL = BRICKLINK_URL + "catalogPG.asp?O={num}-"
 BRICKLINK_SET_HISTORY_COMPLETE_URL = (
     BRICKLINK_SET_HISTORY_URL + "&viewExclude=Y"
 )
+BRICKLINK_BOX_HISTORY_COMPLETE_URL = (
+    BRICKLINK_BOX_HISTORY_URL + "&viewExclude=Y"
+)
+BRICKLINK_LOGIN_ENDPOINT = BRICKLINK_URL + "ajax/renovate/loginandout.ajax"
 
 BRICKSET_URL = "https://brickset.com/"
 BRICKSET_SET_URL = BRICKSET_URL + "sets/{num}/"
@@ -41,3 +46,5 @@ BRICKSET_FIELDS = [
 LEGO_SET_SHOP_URL = "https://www.lego.com/product/{shortnum}"
 
 DEFAULT_DATE_FORMAT = "%d-%m-%Y, %H:%M:%S"
+
+TOR_CONTROLLER_PORT = 9051

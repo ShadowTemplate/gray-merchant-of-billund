@@ -32,7 +32,14 @@ def collection_stats():
         my_collection,
         rebrickable_index,
     )
-    bricklink_index: BricklinkIndex = get_bricklink_index(my_index)
+    MILLISECOND = 1
+    SECOND = 1000 * MILLISECOND
+    MINUTE = 60 * SECOND
+    HOUR = 60 * MINUTE
+    DAY = 24 * HOUR
+    CACHE = 60 * DAY
+    bricklink_index: BricklinkIndex = get_bricklink_index(my_index, CACHE)
+    # bricklink_index: BricklinkIndex = get_bricklink_index(my_index)
     brickset_index: BricksetIndex = get_brickset_index(my_index)
     correct_brickset_index(brickset_index)
 
@@ -64,7 +71,9 @@ def collection_stats():
     print("Missing instructions:")
     for s in my_collection:
         if not s.instructions:
-            print(f"https://www.bricklink.com/v2/catalog/catalogitem.page?I={s.num}")
+            print(
+                f"https://www.bricklink.com/v2/catalog/catalogitem.page?I={s.num}"
+            )
 
     print(f"Total parts: {my_index.tot_num_parts}")
     print(f"Avg set parts: {my_index.avg_num_parts:.2f}")
@@ -77,25 +86,38 @@ def collection_stats():
     )
     print(f"Total RRP price: {brickset_index.tot_rrp_available:.2f} €")
     print(
+        f"RRP balance: {brickset_index.tot_rrp_available-my_collection.tot_purchase_price:.2f} €"
+    )
+    print(
         f"Avg price per piece: {100 * my_collection.tot_purchase_price/my_index.tot_num_parts:.2f} c"
     )
     print(separator)
     print("Origin (type)")
-    print(f"Store: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('S')])}")
-    print(f"Online: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('O')])}")
-    print(f"eBay: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('E')])}")
-    print(f"Bricklink: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('B')])}")
-    print(f"Gianmarco: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('G')])}")
+    print(
+        f"Store: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('S')])}"
+    )
+    print(
+        f"Online: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('O')])}"
+    )
+    print(
+        f"eBay: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('E')])}"
+    )
+    print(
+        f"Bricklink: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('B')])}"
+    )
+    print(
+        f"Gianmarco: {len([s for s in my_collection if s.acquired_location and s.acquired_location.startswith('G')])}"
+    )
     print(separator)
     print("Origin (country)")
     country_counter = defaultdict(int)
     for s in my_collection:
         if not s.acquired_location:
-            country_counter['?'] += 1
-        elif s.acquired_location.startswith('G'):
-            country_counter['ITA'] += 1
+            country_counter["?"] += 1
+        elif s.acquired_location.startswith("G"):
+            country_counter["ITA"] += 1
         else:
-            tokens = s.acquired_location.split(', ')
+            tokens = s.acquired_location.split(", ")
             country_counter[tokens[1]] += 1
     for country, counter in country_counter.items():
         print(f"{country}: {counter}")

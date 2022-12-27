@@ -1,3 +1,6 @@
 requests
 retrying
 pyquery
+# guide followed: https://techmonger.github.io/68/tor-new-ip-python/
+stem
+pysocks

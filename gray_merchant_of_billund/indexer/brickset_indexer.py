@@ -23,7 +23,7 @@ log = get_logger()
 
 
 def get_brickset_index(
-        index: RebrickableIndex, time_to_live_ms: Optional[int] = None
+    index: RebrickableIndex, time_to_live_ms: Optional[int] = None
 ) -> BricksetIndex:
     sets: List[BricksetSet] = []
     for lego_set in index:

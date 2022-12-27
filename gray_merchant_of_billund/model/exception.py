@@ -26,3 +26,11 @@ class PersonalCollectionParseException(
 
 class BricklinkParseException(BricklinkException, ParseException):
     pass
+
+
+class BricklinkQuotaError(BricklinkException):
+    pass
+
+
+class BricklinkLoginException(BricklinkException, ParseException):
+    pass

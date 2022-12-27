@@ -1,3 +1,4 @@
+import time
 from typing import List, Optional
 
 import requests
@@ -10,6 +11,7 @@ from gray_merchant_of_billund.model.bricklink_set import (
     BricklinkIndex,
     BricklinkSet,
 )
+from gray_merchant_of_billund.model.exception import BricklinkQuotaError
 from gray_merchant_of_billund.model.rebrickable_set import (
     RebrickableIndex,
     RebrickableSet,
@@ -38,7 +40,7 @@ def get_bricklink_index(
 
 def _get_bricklink_set(lego_set: RebrickableSet) -> BricklinkSet:
     lego_set_url: str = BRICKLINK_SET_SHOP_URL.format(num=lego_set.num)
-    log.debug(f"Getting info from {lego_set_url}...")
+    log.info(f"Getting info from {lego_set_url}...")
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux i686) "
         "AppleWebKit/537.17 (KHTML, like Gecko) "
@@ -47,7 +49,7 @@ def _get_bricklink_set(lego_set: RebrickableSet) -> BricklinkSet:
     }
     try:
         response = execute_http_request(
-            requests.get,
+            requests.get,  # session.get
             lego_set_url,
             headers=headers,
         )
@@ -68,8 +70,20 @@ def _get_bricklink_set(lego_set: RebrickableSet) -> BricklinkSet:
             on_wanted = int(on_wanted.split(" ")[1])
         except ValueError:  # TODO
             on_wanted = 0
-        price_guide: PriceGuide = get_price_guide(lego_set)
-        return BricklinkSet(lego_set, for_sale, on_wanted, price_guide)
+        try:
+            price_guide: PriceGuide = get_price_guide(
+                lego_set.link_bricklink_set_history
+            )
+            price_guide_box: PriceGuide = get_price_guide(
+                lego_set.link_bricklink_box_history
+            )
+        except BricklinkQuotaError:
+            # handle soft-ban
+            time.sleep(60)
+            return _get_bricklink_set(lego_set)
+        return BricklinkSet(
+            lego_set, for_sale, on_wanted, price_guide, price_guide_box
+        )
     except Exception as exc:
         log.exception(
             "Unable to fetch data.\nPlease check your Internet connection and the availability of the site."

@@ -16,11 +16,15 @@ lxml==4.6.3
     # via pyquery
 pyquery==1.4.3
     # via -r requirements.in
+pysocks==1.7.1
+    # via -r requirements.in
 requests==2.25.1
     # via -r requirements.in
 retrying==1.3.3
     # via -r requirements.in
 six==1.15.0
     # via retrying
+stem==1.8.0
+    # via -r requirements.in
 urllib3==1.26.4
     # via requests
