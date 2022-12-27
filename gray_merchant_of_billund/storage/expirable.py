@@ -2,8 +2,9 @@ import errno
 import os
 import pickle
 from abc import abstractmethod
+from glob import glob
 from pathlib import Path
-from typing import Optional, Type, TypeVar
+from typing import List, Optional, Type, TypeVar
 
 from gray_merchant_of_billund.storage.saveable import Saveable
 from gray_merchant_of_billund.utils.log import get_logger
@@ -75,3 +76,27 @@ def load(
         log.debug(f"Missing item {store_path}.")
     finally:
         return item
+
+
+def load_all(
+    cls: Type[TExpirable],
+    store_key: str,
+) -> List[TExpirable]:
+    store_path: str = Expirable.build_store_path(
+        cls.store_dir(),
+        "*",
+        store_sub_dir=store_key,
+    )
+    log.debug(f"Loading items from {store_path}...")
+    os.makedirs(cls.store_dir(), exist_ok=True)
+    items: List[TExpirable] = []
+    for store_path in (
+        f for f in glob(store_path) if not f.endswith("latest.pkl")
+    ):
+        try:
+            with open(store_path, "rb") as in_f:
+                items.append(pickle.load(in_f))
+                log.debug(f"Loaded item from {store_path}.")
+        except FileNotFoundError:
+            log.debug(f"Missing item {store_path}.")
+    return items

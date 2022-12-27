@@ -28,128 +28,115 @@ def get_price_guide(lego_set_url) -> PriceGuide:
         "Chrome/24.0.1312.27 "
         "Safari/537.17"
     }
-    try:
-        response = execute_http_request(
-            requests.get,  # session.get
-            lego_set_url,
-            headers=headers,
+    response = execute_http_request(
+        requests.get,  # session.get
+        lego_set_url,
+        headers=headers,
+    )
+    pq = PyQuery(response.content)
+
+    if "Quota Exceeded" in pq.text():
+        # handle soft-ban
+        raise BricklinkQuotaError()
+
+    aggregate_prices_fields = [
+        "Total Qty:",
+        "Min Price:",
+        "Avg Price:",
+        "Qty Avg Price:",
+        "Max Price:",
+    ]
+    tds: Sequence[PyQuery] = list(pq("td").items())
+    sales_summaries: List[Optional[PyQuery]] = []
+    aggregate_availability_clues: List[PyQuery] = []
+    for td in tds:
+        td_str = str(td)
+        if 'valign="TOP"' in td_str and "javascript" not in td_str:
+            aggregate_availability_clues.append(td)
+            if td.text() == "(Unavailable)":
+                sales_summaries.append(None)
+        if "colspan" in str(td) or 'valign="TOP"' in str(td):
+            continue
+        if any(field not in td_str for field in aggregate_prices_fields):
+            continue
+        sales_summaries.append(td)
+
+    aggregate_last_6_months_new: Optional[BricklinkAggregateSold] = None
+    if sales_summaries and sales_summaries[0]:
+        aggregate_last_6_months_new = _parse_bricklink_aggregate_prices_sold(
+            _get_td_lines(sales_summaries[0])
         )
-        pq = PyQuery(response.content)
-
-        if "Quota Exceeded" in pq.text():
-            # handle soft-ban
-            raise BricklinkQuotaError()
-
-        aggregate_prices_fields = [
-            "Total Qty:",
-            "Min Price:",
-            "Avg Price:",
-            "Qty Avg Price:",
-            "Max Price:",
-        ]
-        tds: Sequence[PyQuery] = list(pq("td").items())
-        sales_summaries: List[Optional[PyQuery]] = []
-        aggregate_availability_clues: List[PyQuery] = []
-        for td in tds:
-            td_str = str(td)
-            if 'valign="TOP"' in td_str and "javascript" not in td_str:
-                aggregate_availability_clues.append(td)
-                if td.text() == "(Unavailable)":
-                    sales_summaries.append(None)
-            if "colspan" in str(td) or 'valign="TOP"' in str(td):
-                continue
-            if any(field not in td_str for field in aggregate_prices_fields):
-                continue
-            sales_summaries.append(td)
-
-        aggregate_last_6_months_new: Optional[BricklinkAggregateSold] = None
-        if sales_summaries and sales_summaries[0]:
-            aggregate_last_6_months_new = (
-                _parse_bricklink_aggregate_prices_sold(
-                    _get_td_lines(sales_summaries[0])
-                )
-            )
-        aggregate_last_6_months_used: Optional[BricklinkAggregateSold] = None
-        if sales_summaries and sales_summaries[1]:
-            aggregate_last_6_months_used = (
-                _parse_bricklink_aggregate_prices_sold(
-                    _get_td_lines(sales_summaries[1])
-                )
-            )
-        aggregate_current_new: Optional[BricklinkAggregateSelling] = None
-        if sales_summaries and sales_summaries[2]:
-            aggregate_current_new = _parse_bricklink_aggregate_prices_selling(
-                _get_td_lines(sales_summaries[2])
-            )
-        aggregate_current_used: Optional[BricklinkAggregateSelling] = None
-        if sales_summaries and sales_summaries[3]:
-            aggregate_current_used = _parse_bricklink_aggregate_prices_selling(
-                _get_td_lines(sales_summaries[3])
-            )
-
-        detailed_sales_new = []
-        detailed_sales_used = []
-        for td in tds:
-            bgcolor = td.attr("bgcolor")
-            if not bgcolor:
-                continue
-            if bgcolor == "EEEEEE":
-                detailed_sales_new.append(td)
-            if bgcolor == "DDDDDD":
-                detailed_sales_used.append(td)
-
-        details_last_6_months_new: Optional[
-            Sequence[BricklinkAggregateSoldMonth]
-        ] = None
-        if sales_summaries and sales_summaries[0]:
-            details_last_6_months_new = (
-                _parse_bricklink_aggregate_prices_sold_months(
-                    _get_td_lines(detailed_sales_new[0])
-                )
-            )
-        details_last_6_months_used: Optional[
-            Sequence[BricklinkAggregateSoldMonth]
-        ] = None
-        if sales_summaries and sales_summaries[1]:
-            details_last_6_months_used = (
-                _parse_bricklink_aggregate_prices_sold_months(
-                    _get_td_lines(detailed_sales_used[0])
-                )
-            )
-
-        details_current_new: Optional[BricklinkAggregateSellingCurrent] = None
-        if sales_summaries and sales_summaries[2]:
-            details_current_new = (
-                _parse_bricklink_aggregate_prices_selling_current(
-                    _get_td_lines(detailed_sales_new[1])
-                )
-            )
-        details_current_used: Optional[BricklinkAggregateSellingCurrent] = None
-        if sales_summaries and sales_summaries[3]:
-            details_current_used = (
-                _parse_bricklink_aggregate_prices_selling_current(
-                    _get_td_lines(detailed_sales_used[1])
-                )
-            )
-
-        return PriceGuide(
-            aggregate_last_6_months_new,
-            aggregate_last_6_months_used,
-            aggregate_current_new,
-            aggregate_current_used,
-            details_last_6_months_new,
-            details_last_6_months_used,
-            details_current_new,
-            details_current_used,
+    aggregate_last_6_months_used: Optional[BricklinkAggregateSold] = None
+    if sales_summaries and sales_summaries[1]:
+        aggregate_last_6_months_used = _parse_bricklink_aggregate_prices_sold(
+            _get_td_lines(sales_summaries[1])
         )
-    except Exception as exc:
-        log.exception(
-            "Unable to fetch data.\nPlease check your Internet connection and the availability of the site."
+    aggregate_current_new: Optional[BricklinkAggregateSelling] = None
+    if sales_summaries and sales_summaries[2]:
+        aggregate_current_new = _parse_bricklink_aggregate_prices_selling(
+            _get_td_lines(sales_summaries[2])
         )
-        log.exception(
-            f"Okay, merchant, we've had a problem here.\n{type(exc).__name__}: {str(exc)}"
+    aggregate_current_used: Optional[BricklinkAggregateSelling] = None
+    if sales_summaries and sales_summaries[3]:
+        aggregate_current_used = _parse_bricklink_aggregate_prices_selling(
+            _get_td_lines(sales_summaries[3])
         )
-        raise exc
+
+    detailed_sales_new = []
+    detailed_sales_used = []
+    for td in tds:
+        bgcolor = td.attr("bgcolor")
+        if not bgcolor:
+            continue
+        if bgcolor == "EEEEEE":
+            detailed_sales_new.append(td)
+        if bgcolor == "DDDDDD":
+            detailed_sales_used.append(td)
+
+    details_last_6_months_new: Optional[
+        Sequence[BricklinkAggregateSoldMonth]
+    ] = None
+    if sales_summaries and sales_summaries[0]:
+        details_last_6_months_new = (
+            _parse_bricklink_aggregate_prices_sold_months(
+                _get_td_lines(detailed_sales_new[0])
+            )
+        )
+    details_last_6_months_used: Optional[
+        Sequence[BricklinkAggregateSoldMonth]
+    ] = None
+    if sales_summaries and sales_summaries[1]:
+        details_last_6_months_used = (
+            _parse_bricklink_aggregate_prices_sold_months(
+                _get_td_lines(detailed_sales_used[0])
+            )
+        )
+
+    details_current_new: Optional[BricklinkAggregateSellingCurrent] = None
+    if sales_summaries and sales_summaries[2]:
+        details_current_new = (
+            _parse_bricklink_aggregate_prices_selling_current(
+                _get_td_lines(detailed_sales_new[1])
+            )
+        )
+    details_current_used: Optional[BricklinkAggregateSellingCurrent] = None
+    if sales_summaries and sales_summaries[3]:
+        details_current_used = (
+            _parse_bricklink_aggregate_prices_selling_current(
+                _get_td_lines(detailed_sales_used[1])
+            )
+        )
+
+    return PriceGuide(
+        aggregate_last_6_months_new,
+        aggregate_last_6_months_used,
+        aggregate_current_new,
+        aggregate_current_used,
+        details_last_6_months_new,
+        details_last_6_months_used,
+        details_current_new,
+        details_current_used,
+    )
 
 
 def _get_td_lines(td):

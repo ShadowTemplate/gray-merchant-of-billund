@@ -47,51 +47,43 @@ def _get_bricklink_set(lego_set: RebrickableSet) -> BricklinkSet:
         "Chrome/24.0.1312.27 "
         "Safari/537.17"
     }
+    response = execute_http_request(
+        requests.get,  # session.get
+        lego_set_url,
+        headers=headers,
+    )
+    pq = PyQuery(response.content)
+
+    my_inventory = pq("#_idAddToMyInvLink").parent()
     try:
-        response = execute_http_request(
-            requests.get,  # session.get
-            lego_set_url,
-            headers=headers,
-        )
-        pq = PyQuery(response.content)
+        for_sale = _parse_bricklink_info(my_inventory, "For Sale")
+        log.debug(for_sale)  # X Lots For Sale
+        for_sale = int(for_sale.split(" ")[0])
+    except ValueError:  # TODO
+        for_sale = 0
 
-        my_inventory = pq("#_idAddToMyInvLink").parent()
-        try:
-            for_sale = _parse_bricklink_info(my_inventory, "For Sale")
-            log.debug(for_sale)  # X Lots For Sale
-            for_sale = int(for_sale.split(" ")[0])
-        except ValueError:  # TODO
-            for_sale = 0
-
-        my_wanted_list = pq("#_idAddToWantedLink").parent()
-        try:
-            on_wanted = _parse_bricklink_info(my_wanted_list, "Wanted Lists")
-            log.debug(on_wanted)  # On X Wanted Lists
-            on_wanted = int(on_wanted.split(" ")[1])
-        except ValueError:  # TODO
-            on_wanted = 0
-        try:
-            price_guide: PriceGuide = get_price_guide(
-                lego_set.link_bricklink_set_history
-            )
-            price_guide_box: PriceGuide = get_price_guide(
-                lego_set.link_bricklink_box_history
-            )
-        except BricklinkQuotaError:
-            # handle soft-ban
-            time.sleep(60)
-            return _get_bricklink_set(lego_set)
-        return BricklinkSet(
-            lego_set, for_sale, on_wanted, price_guide, price_guide_box
+    my_wanted_list = pq("#_idAddToWantedLink").parent()
+    try:
+        on_wanted = _parse_bricklink_info(my_wanted_list, "Wanted Lists")
+        log.debug(on_wanted)  # On X Wanted Lists
+        on_wanted = int(on_wanted.split(" ")[1])
+    except ValueError:  # TODO
+        on_wanted = 0
+    try:
+        price_guide: PriceGuide = get_price_guide(
+            lego_set.link_bricklink_set_history
         )
-    except Exception as exc:
-        log.exception(
-            "Unable to fetch data.\nPlease check your Internet connection and the availability of the site."
+        price_guide_box: PriceGuide = get_price_guide(
+            lego_set.link_bricklink_box_history
         )
-        log.exception(
-            f"Okay, merchant, we've had a problem here.\n{type(exc).__name__}: {str(exc)}"
-        )
-        raise exc
+    except BricklinkQuotaError:
+        # handle soft-ban
+        log.warning("Soft-banned. Sleeping...")
+        time.sleep(60)
+        return _get_bricklink_set(lego_set)
+    return BricklinkSet(
+        lego_set, for_sale, on_wanted, price_guide, price_guide_box
+    )
 
 
 def _parse_bricklink_info(block, key):
