@@ -39,6 +39,11 @@ def get_price_guide(lego_set_url) -> PriceGuide:
         # handle soft-ban
         raise BricklinkQuotaError()
 
+    if "Access Forbidden" in pq.text():
+        # this seems a hard-ban
+        log.error("Access Forbidden. You may want to change your IP...")
+        raise BricklinkQuotaError()
+
     aggregate_prices_fields = [
         "Total Qty:",
         "Min Price:",

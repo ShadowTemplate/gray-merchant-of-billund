@@ -39,6 +39,7 @@ class BricksetSet(RebrickableSet, Expirable):
     def rrp_gbp(self) -> Optional[float]:
         # self.rrp_raw is a string of the form:
         # £369.99 / $399.99 / 399.99€
+        # TODO: handle case with no space, like for rrp_eur
         if self.rrp_raw is None or "£" not in self.rrp_raw:
             return None
         price: str = self.rrp_raw.split("£")[1]  # 369.99 / $399.99 / 399.99€
@@ -49,6 +50,7 @@ class BricksetSet(RebrickableSet, Expirable):
     def rrp_usd(self) -> Optional[float]:
         # self.rrp_raw is a string of the form:
         # £369.99 / $399.99 / 399.99€
+        # TODO: handle case with no space, like for rrp_eur
         if self.rrp_raw is None or "$" not in self.rrp_raw:
             return None
         price: str = self.rrp_raw.split("$")[1]  # 399.99 / 399.99€
@@ -58,11 +60,15 @@ class BricksetSet(RebrickableSet, Expirable):
     @property
     def rrp_eur(self) -> Optional[float]:
         # self.rrp_raw is a string of the form:
-        # £369.99 / $399.99 / 399.99€
+        # £29.99/$39.99/€34.99
+        # or
+        # £34.99 / $34.99 / 49.99€
         if self.rrp_raw is None or "€" not in self.rrp_raw:
             return None
-        price: str = self.rrp_raw.split("€")[0]  # £369.99 / $399.99 / 399.99
-        price = price.rsplit(" ")[-1]  # 399.99
+        price: str = self.rrp_raw.split("€")[1]  # £29.99/$39.99/€34.99
+        if price == "":
+            price: str = self.rrp_raw.split("€")[0]  # £34.99 / $34.99 / 49.99€
+            price = price.rsplit(" ")[-1]
         return float(price)
 
     @property
@@ -81,10 +87,17 @@ class BricksetSet(RebrickableSet, Expirable):
     def ppp_eur(self) -> Optional[float]:
         # self.ppp_raw is a string of the form:
         # 6.7p / 7.2c / 7.2c
+        # or
+        # 6.7p/8.2c/7.7c
         # so we assume € is the last price
         if self.ppp_raw is None or "c" not in self.ppp_raw:
             return None
-        return float(self.ppp_raw.split(" ")[-1][:-1])
+        price: str = self.ppp_raw.split(" ")
+        if len(price) > 1:  # 6.7p / 7.2c / 7.2c
+            price = price[-1][:-1]
+        else:  # 6.7p/8.2c/7.7c
+            price = self.ppp_raw.split("/")[-1][:-1]
+        return float(price)
 
     @staticmethod
     def store_dir() -> str:

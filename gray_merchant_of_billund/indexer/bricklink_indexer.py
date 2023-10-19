@@ -4,7 +4,10 @@ from typing import List, Optional
 import requests
 from pyquery import PyQuery  # type: ignore
 
-from gray_merchant_of_billund.constants.gmob import BRICKLINK_SET_SHOP_URL
+from gray_merchant_of_billund.constants.gmob import (
+    BRICKLINK_SET_SHOP_URL,
+    BRICKLINK_SLEEP_TIMEOUT,
+)
 from gray_merchant_of_billund.indexer.bricklink_prices import get_price_guide
 from gray_merchant_of_billund.model.bricklink_price import PriceGuide
 from gray_merchant_of_billund.model.bricklink_set import (
@@ -34,6 +37,7 @@ def get_bricklink_index(
         if not bricklink_set:
             bricklink_set = _get_bricklink_set(lego_set)
             bricklink_set.save()
+            time.sleep(BRICKLINK_SLEEP_TIMEOUT)
         sets.append(bricklink_set)
     return BricklinkIndex(sets)
 
@@ -79,7 +83,7 @@ def _get_bricklink_set(lego_set: RebrickableSet) -> BricklinkSet:
     except BricklinkQuotaError:
         # handle soft-ban
         log.warning("Soft-banned. Sleeping...")
-        time.sleep(60)
+        time.sleep(BRICKLINK_SLEEP_TIMEOUT)
         return _get_bricklink_set(lego_set)
     return BricklinkSet(
         lego_set, for_sale, on_wanted, price_guide, price_guide_box

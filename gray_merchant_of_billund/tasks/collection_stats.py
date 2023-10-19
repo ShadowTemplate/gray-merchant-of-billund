@@ -12,6 +12,7 @@ from gray_merchant_of_billund.model.brickset_set import BricksetIndex
 from gray_merchant_of_billund.model.collection_set import CollectionIndex
 from gray_merchant_of_billund.model.rebrickable_set import RebrickableIndex
 from gray_merchant_of_billund.utils.log import get_logger
+from gray_merchant_of_billund.utils.time import MONTH
 from gray_merchant_of_billund.utils.utils_resources import (
     get_personal_collection,
     get_personal_index,
@@ -32,13 +33,8 @@ def collection_stats():
         my_collection,
         rebrickable_index,
     )
-    MILLISECOND = 1
-    SECOND = 1000 * MILLISECOND
-    MINUTE = 60 * SECOND
-    HOUR = 60 * MINUTE
-    DAY = 24 * HOUR
-    CACHE = 60 * DAY
-    bricklink_index: BricklinkIndex = get_bricklink_index(my_index, CACHE)
+    cache = MONTH
+    bricklink_index: BricklinkIndex = get_bricklink_index(my_index, cache)
     # bricklink_index: BricklinkIndex = get_bricklink_index(my_index)
     brickset_index: BricksetIndex = get_brickset_index(my_index)
     correct_brickset_index(brickset_index)

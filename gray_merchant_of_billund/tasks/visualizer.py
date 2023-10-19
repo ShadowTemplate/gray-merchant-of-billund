@@ -1,5 +1,6 @@
 import calendar
 import math
+import os
 from collections import defaultdict
 from datetime import date
 from typing import List
@@ -10,6 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
+from gray_merchant_of_billund.constants.gmob import PLOT_DIR
 from gray_merchant_of_billund.indexer.brickset_indexer import (
     get_brickset_index,
 )
@@ -33,7 +35,6 @@ def get_aggregate_sold_monthly_recap(set_num, dates, years):
         raise ValueError(f"No data for set {base_set.num}")
     base_set.name = bricklink_sets[0].name
     base_set.year = bricklink_sets[0].year
-    print(base_set)
     aggregate_sold_month_by_year_month_used = defaultdict(
         lambda: defaultdict(list)
     )
@@ -94,7 +95,7 @@ def get_aggregate_sold_monthly_recap(set_num, dates, years):
         }
     )
     df = df.set_index(dates)
-    print(df)
+    # print(df)
     return base_set, df
 
 
@@ -134,7 +135,9 @@ def plot_asms(
     if retail_price:
         graph.axhline(retail_price, color="y")
         plt.text(
-            x=dates[2],
+            x=dates[
+                -1
+            ],  # TODO: fix: sometimes it's too much on the right, out of plot
             y=retail_price - offset,
             s="{: .0f}".format(retail_price),
             color="y",
@@ -156,11 +159,14 @@ def plot_asms(
     axes.xaxis.set_minor_locator(months)
 
     plt.xticks(rotation="vertical")
-    plt.show()
+    # plt.show()
+    plt.savefig(f"{PLOT_DIR}/{base_set.num}_{base_set.name}.png")
+    plt.close()
 
 
 def main():
     matplotlib.use("TkAgg")
+    os.makedirs(PLOT_DIR, exist_ok=True)
     current_year = date.today().year
     my_collection: CollectionIndex = get_personal_collection()
     rebrickable_index: RebrickableIndex = get_rebrickable_index()
@@ -188,6 +194,7 @@ def main():
         except IndexError:
             rounded_date = dates[0]
         retail_price = brickset_index[s].rrp_available
+        print(f"Generating plot for {base_set}...")
         plot_asms(
             base_set,
             df,
@@ -197,7 +204,7 @@ def main():
             retail_price,
             new=my_set.acquired_new,
         )
-        continue
+        # continue
 
 
 if __name__ == "__main__":

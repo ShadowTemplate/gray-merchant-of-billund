@@ -2,11 +2,7 @@ from gray_merchant_of_billund.constants.gmob import RESOURCES_DIR
 from gray_merchant_of_billund.indexer.bricklink_indexer import (
     get_bricklink_index,
 )
-from gray_merchant_of_billund.indexer.brickset_indexer import (
-    get_brickset_index,
-)
 from gray_merchant_of_billund.model.bricklink_set import BricklinkIndex
-from gray_merchant_of_billund.model.brickset_set import BricksetIndex
 from gray_merchant_of_billund.model.collection_set import CollectionIndex
 from gray_merchant_of_billund.model.rebrickable_set import RebrickableIndex
 from gray_merchant_of_billund.utils.path import posix_path
@@ -50,7 +46,10 @@ def explore():
     print("Bricklink current used min/avg price:")
     for lego_set in bricklink_index:
         price_guide = lego_set.price_guide
-        if price_guide.details_current_used and price_guide.aggregate_current_used:
+        if (
+            price_guide.details_current_used
+            and price_guide.aggregate_current_used
+        ):
             min_price = price_guide.details_current_used.min_price
             avg_price = price_guide.aggregate_current_used.avg_price
             print(
@@ -78,7 +77,10 @@ def explore():
     print("Bricklink current new min/avg price")
     for lego_set in bricklink_index:
         price_guide = lego_set.price_guide
-        if price_guide.details_current_new and price_guide.aggregate_current_new:
+        if (
+            price_guide.details_current_new
+            and price_guide.aggregate_current_new
+        ):
             min_price = price_guide.details_current_new.min_price
             avg_price = price_guide.aggregate_current_new.avg_price
             print(
